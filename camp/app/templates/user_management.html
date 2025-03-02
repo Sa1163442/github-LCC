@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title></title>
+<style>
+    .modal-dialog {
+        width: 80%;
+        max-width: 80%;
+        height: 80%;
+        max-height: 80%;
+    }
+    .modal-content {
+        height: 100%;  /* 让内容区域占满整个模态框 */
+    }
+    .modal-body {
+        height: calc(100% - 80px); /* 减去header（56px）和footer的高度 */
+        overflow-y: auto; /* 如果内容过多，显示滚动条 */
+    }
+
+
+    /* 设置 modal-dialog 的宽度为 60% 和高度为 80% */
+    #showMessage .modal-dialog {
+    width: 20%;  /* 宽度为 60% */
+    height: 20%; /* 高度为 80% */
+    margin: auto; /* 保证模态框居中 */
+    }
+
+/* 设置 modal-content 的最大宽度和最大高度 */
+#showMessage .modal-content {
+    max-width: 100%;
+    max-height: 100%;
+}
+.custom-select-width {
+    width: 150px; /* 设置你想要的宽度 */
+}
+
+   .modal-backdrop {
+    width: 100%;
+    }
+
+</style>
+
+    <script>
+    </script>
+</head>
+
+<body>
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<div class="container d-flex align-items-center" style="height: 10vh;">
+    <input type="hidden" id="currentPage" value="{{ current_page }}">
+   <!-- 输入框 -->
+    <label for="username" class="ms-2">
+        <input type="text" value="{{userInput}}" id="userInput" class="form-control{% if username_invalid %} is-invalid{% endif %}" id="username" name="username" placeholder="Enter your ..." maxlength=40  required>
+    </label>
+    <!-- 按钮 -->
+    <button type="button" class="btn  col-sm-auto btn-success ms-2" id="searchUserBtn" >
+        Search User
+    </button>
+    <div>
+    <label for="userSelect">
+    <select class="form-select custom-select-width" id="userSelect" name="status">
+    <option value="username1" {% if selectedText == 'username' %}selected{% endif %}>username</option>
+    <option value="first_name1" {% if selectedText == 'first_name' %}selected{% endif %}>first_name</option>
+    <option value="last_name1" {% if selectedText == 'last_name' %}selected{% endif %}>last_name</option>
+    </select>
+    </label>
+    </div>
+</div>
+
+
+   <div class="modal" id="adduserModal" tabindex="-1" aria-labelledby="inputModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="inputModalLabel">Add user</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="modalForm">
+                            <div class="mb-3">
+                                <label for="summary" class="form-label">Summary</label>
+                                <input type="text" class="form-control" id="summary" placeholder="Enter your summary" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <input type="text" class="form-control" id="description" placeholder="Enter your description" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-primary" id="okButton">Ok</button>
+                    </div>
+                        <div class="mb-3" id="messagePrompt" style="color: red;"></div></div>
+                </div>
+            </div>
+
+
+
+     <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>user_id</th>
+                    <th>username</th>
+                    <th>email</th>
+                    <th>first_name</th>
+                    <th>last_name</th>
+                    <th>profile_image</th>
+                    <th>status</th>
+                    <th>role</th>
+                    <th>operation 1</th>
+                    <th>operation 2</th>
+                </tr>
+            </thead>
+                <tbody>
+                {% for user in users %}
+                <tr   data-issue-id="tr{{user.user_id}}">
+                    <td>{{ user.user_id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.first_name }}</td>
+                    <td>{{ user.last_name }}</td>
+                    <td>
+                     <img src="static/images/{{user.profile_image}}"   style="height: 50px; width: 50px;" alt="" />
+                    </td>
+                    <td>
+                        {{user.status}}
+                    </td>
+                    <td>{{ user.role }}</td>
+
+                    <td>
+                    {% if session['user_id'] == user.user_id %}
+                    Current User
+                    {% else %}
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#changeStatusModal{{user.user_id  }}">
+                    Change status
+                    </button>
+                    {% endif %}
+                     <div class="modal" id="changeStatusModal{{ user.user_id}}" tabindex="-1" aria-labelledby="inputModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" style="width: 20%; max-width: 20%;height:30%;">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="changeStatusLable{{ user.user_id}}">Change status</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="modalForm6{{user.user_id}}">
+                                        <label for="changeStatusSelect{{ user.user_id}}">
+                                            <select class="form-select" id="changeStatusSelect{{ user.user_id}}" name="status">
+                                            <option value="open {% if user.status == 'active' %}selected{% endif %}">active</option>
+                                            <option value="closed{% if user.status == 'inactive' %}selected{% endif %}">inactive</option>
+                                            </select>
+                                        </label>
+                                    </form>
+                                </div>
+                                 <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" id="change{{ user.user_id}}" onclick="changeStatusClick('{{ user.user_id}}')">Ok</button>
+                                 </div>
+                            </div>
+                        </div>
+            </div>
+                    </td>
+                    <td>
+                        {% if session['user_id'] == user.user_id %}
+                        Current User
+                        {% else %}
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"  data-bs-target="#changeRoleModal{{user.user_id }}">
+                        Change role
+                        </button>
+                        {% endif %}
+                        <div class="modal" id="changeRoleModal{{ user.user_id}}" tabindex="-1" aria-labelledby="inputModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" style="width: 20%; max-width: 20%;height:30%;">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="changeRoleModalTitle{{ user.user_id}}">Change role</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="changeRoleFoeem{{user.user_id}}">
+                                        <label for="changeRoleSelect{{ user.user_id}}">
+                                            <select class="form-select" id="changeRoleSelect{{ user.user_id}}" name="status">
+                                            <option value="open {% if user.status == 'visitor' %}selected{% endif %}">visitor</option>
+                                            <option value="closed{% if user.status == 'helper' %}selected{% endif %}">helper</option>
+                                            <option value="closed{% if user.status == 'admin' %}selected{% endif %}">admin</option>
+                                            </select>
+                                        </label>
+                                    </form>
+                                </div>
+                                 <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" id="changeRoleButton{{ user.user_id}}" onclick="changeRoleClick('{{ user.user_id}}')">Ok</button>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                {% endfor %}
+   <div class="modal" id="showMessage" tabindex="-1" aria-labelledby="inputModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Message</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body" id="showMessageText">
+                    user added successfully!
+                    </div>
+                    </div>
+                </div>
+            </div>
+          </tbody>
+        </table>
+        {% set view_function = 'user_management' %}
+        <!-- pagination会跳转这个view_function 肉传递第几页给后端  然后再返回-->
+        {% include 'user_pagination.html' %}
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+
+
+
+        function fetchTool(url, json) {
+                // 返回一个 Promise
+                return new Promise((resolve, reject) => {
+                // 使用 fetch API 发起请求
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json' // 设置请求头，表明发送的是 JSON 数据
+                    },
+                    body: JSON.stringify(json) // 将 JSON 数据转换为字符串
+                })
+                .then(response => {
+                    // 检查请求是否成功
+                    if (!response.ok) {
+                        // 如果请求失败，返回 false
+                        resolve(false);
+                    }
+                    return response.json(); // 解析 JSON 数据
+                })
+                .then(data => {
+                    resolve(true);
+                })
+                .catch(error => {
+                    // 发生错误，返回 false
+                    console.error('Fetch error:', error);
+                    resolve(false);
+                });
+                });
+
+        }
+
+
+        function  getInput(name,value){
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name; // 设置第一个参数名
+            input.value = value; // 设置第一个参数值
+            return input
+        }
+
+        document.getElementById('searchUserBtn').addEventListener('click', function() {
+
+
+            goToPage();
+        });
+
+        function goToPage(){
+             const currentPage = document.getElementById('currentPage').value;  // 获取隐藏的 input 的值
+            const userInput = document.getElementById('userInput').value;  // 获取隐藏的 input 的值
+
+             const selectElement = document.getElementById('userSelect');    // 获取select元素
+            var selectedOption = selectElement.options[selectElement.selectedIndex];     // 获取选中的option元素
+            var selectedText = selectedOption.text;  // 获取选中的option的文本值
+             // 创建一个表单元素
+            const form = document.createElement('form');
+            form.method = 'POST'; // 设置表单方法为 POST
+            form.action = 'search_user'; // 设置表单提交的 URL
+            form.appendChild(getInput("currentPage",currentPage));  // 将 input 添加到表单中
+            form.appendChild(getInput("userInput",userInput));  // 将 input 添加到表单中
+            form.appendChild(getInput("selectedText",selectedText));  // 将 input 添加到表单中
+            document.body.appendChild(form);    // 将表单添加到文档中（需要添加到 body 或其他容器）
+            form.submit();   // 提交表单
+        }
+
+
+        function  displayPrompt(message){
+            const modal = new bootstrap.Modal(document.getElementById('showMessage'));     // 直接显示模态框
+            document.getElementById("showMessageText").textContent=message
+            modal.show();
+        }
+
+        function modalHide(id){
+            const modalElement = document.getElementById(id);
+            const addCommentModal = new bootstrap.Modal(modalElement);
+            addCommentModal.show();
+            addCommentModal.hide();
+        }
+
+
+        function changeStatusClick(user_id){
+            var selectElement = document.getElementById('changeStatusSelect'+user_id);    // 获取select元素
+                var selectedOption = selectElement.options[selectElement.selectedIndex];     // 获取选中的option元素
+                var selectedText = selectedOption.text;  // 获取选中的option的文本值
+                fetchTool("/change_user_status",{status:selectedText,user_id:user_id}) .then(success => {
+                if (success) {
+                      localStorage.setItem("operation",'Successfully changed state')
+                      goToPage();
+                }
+                });
+        }
+
+
+        function  changeRoleClick(user_id){
+                 var selectElement = document.getElementById('changeRoleSelect'+user_id);    // 获取select元素
+                var selectedOption = selectElement.options[selectElement.selectedIndex];     // 获取选中的option元素
+                var selectedText = selectedOption.text;  // 获取选中的option的文本值
+                fetchTool("/change_user_role",{role:selectedText,user_id:user_id}) .then(success => {
+                if (success) {
+                      localStorage.setItem("operation",'Successfully changed role');
+                      goToPage();
+                }
+                });
+        }
+
+        function  removeFade(){
+               // 找到所有具有 class "modal-backdrop" 的元素并移除
+            const offcanvas = document.querySelectorAll('.offcanvas-backdrop');
+            offcanvas.forEach(function(backdrop) {
+            backdrop.remove();
+            });
+            const backdrops1 = document.querySelectorAll('.modal-backdrop');
+            backdrops1.forEach(function(backdrop) {
+            backdrop.remove();
+            });
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        const alertMessage = urlParams.get('alert');
+        // 如果存在 alertMessage，则显示 alert
+        if (alertMessage) {
+            displayPrompt(alertMessage)
+        }
+
+
+        $(document).ready(function () {
+
+
+            if (localStorage.getItem('operation')) {
+            displayPrompt(localStorage.getItem('operation'))
+            localStorage.removeItem('operation');          // 清除之前的操作
+            }
+
+
+
+
+              $('#okButton').on('click', function() {
+                var summary = $('#summary').val().trim(); // 获取 summary 的值并去除首尾空格
+                var description = $('#description').val().trim(); // 获取 description 的值并去除首尾空格
+                // 检查任一字段是否为空
+                if (!summary || !description) {
+                document.getElementById('messagePrompt').textContent="Information cannot be empty";
+                return;
+                }
+                // 使用 fetch API 发起请求
+                fetch('/add_user', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json' // 设置请求头，表明发送的是 JSON 数据
+                },
+                body: JSON.stringify({
+                summary: summary,
+                description: description
+                })
+                })
+                .then(response => {
+                if (!response.ok) {
+                // 如果响应状态不是 200-299，抛出一个错误
+                return response.json().then(err => { throw new Error(err.message); });
+                }
+                return response.json(); // 解析 JSON 响应
+                })
+                .then(data => {
+                const alertMessage = encodeURIComponent("user added successfully!");
+                window.location.href = `user_management?alert=${alertMessage}`; // 跳转到返回的URL
+                })
+                .catch(error => {
+                });
+                });
+
+        });
+
+               function showComment(userId){
+                    const commentsTableBody = document.querySelector('#commentsTable'+userId+' tbody');
+                    console.log(userId)
+                    fetch('/get_comment', {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                    }).then(response => {
+                    if (!response.ok) {
+                    throw new Error('网络响应错误: ' + response.status);
+                    }
+                    return response.json(); // 解析 JSON 数据
+                    })
+                    .then(data => {
+                    // 迭代评论数据并填充表格
+                    data["comments"].forEach(comment => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                    <td>${comment.comment_id}</td>
+                    <td>${comment.user_id}</td>
+                    <td>${comment.user_id}</td>
+                    <td>${comment.username}</td>
+                    <td>${comment.role}</td>
+                    <td>
+                    <img src="static/images/${comment.profile_image}"   style="height: 50px; width: 50px;" alt="" />
+                    </td>
+                    <td>${comment.content}</td>
+                    <td>${comment.create_at}</td>
+                    `;
+                    commentsTableBody.appendChild(row);
+                    });
+                    // console.log("评论数据已填充到表格中。");
+                    })
+                    .catch(error => {
+                    console.error('获取评论数据时出错:', error);
+                    });
+            }
+
+
+
+
+
+
+
+
+
+
+
+        </script>
+
+</body>
+</html>

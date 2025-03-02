@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+        function  removeFade(){
+               // 找到所有具有 class "modal-backdrop" 的元素并移除
+            const offcanvas = document.querySelectorAll('.offcanvas-backdrop');
+            offcanvas.forEach(function(backdrop) {
+            backdrop.remove();
+            });
+            const backdrops1 = document.querySelectorAll('.modal-backdrop');
+            backdrops1.forEach(function(backdrop) {
+            backdrop.remove();
+            });
+        }
+        </script>
+    <title></title>
+    <style>
+    .modal-dialog {
+        width: 80%;
+        max-width: 80%;
+        height: 40%;
+        max-height: 80%;
+    }
+    .modal-content {
+        height: 100%;  /* 让内容区域占满整个模态框 */
+    }
+    .modal-body {
+        /*height: calc(100% - 80px); !* 减去header（56px）和footer的高度 *!*/
+        overflow-y: auto; /* 如果内容过多，显示滚动条 */
+    }
+
+    .modal-backdrop {
+    width: 100%;
+    }
+
+
+    /* 设置 modal-dialog 的宽度为 60% 和高度为 80% */
+    #showMessage .modal-dialog {
+    width: 20%;  /* 宽度为 60% */
+    height: 20%; /* 高度为 80% */
+    margin: auto; /* 保证模态框居中 */
+    }
+
+    /* 设置 modal-content 的最大宽度和最大高度 */
+    #showMessage .modal-content {
+    max-width: 100%;
+    max-height: 100%;
+    }
+
+</style>
+
+</head>
+<body>
+
+<label for="current_page">
+    <input type="hidden" value="{{current_page}}" id="current_page" placeholder="Enter your ..." maxlength=40 required>
+</label>
+<div class="modal" id="addIssueModal" tabindex="-1" aria-labelledby="inputModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="inputModalLabel">Add issue</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="modalForm">
+                            <div class="mb-3">
+                                <label for="summary" class="form-label">Summary</label>
+                                <input type="text" class="form-control" id="summary" placeholder="Enter your summary" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <input type="text" class="form-control" id="description" placeholder="Enter your description" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-primary" id="okButton">Ok</button>
+
+                    </div>
+                        <div class="mb-3" id="messagePrompt" style="color: red;"></div></div>
+                </div>
+            </div>
+
+ <div class="container d-flex">
+      <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addIssueModal">
+              Add Issue
+      </button>
+
+    <label for="statusSelect">
+    <select class="form-select custom-select-width" id="statusSelect" name="status">
+    <option value="all" {% if status_select == '' %}selected{% endif %}>all</option>
+    <option value="resolved" {% if status_select == 'resolved' %}selected{% endif %}>resolved</option>
+    <option value="unresolved" {% if status_select == 'unresolved' %}selected{% endif %}>unresolved</option>
+    </select>
+    </label>
+</div>
+
+
+     <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>issue_id</th>
+                    <th>user_id</th>
+                    <th>username</th>
+                    <th>summary</th>
+                    <th>description</th>
+                    <th>create_at</th>
+                    <th>status</th>
+                    <th>operation 1</th>
+                    <th>operation 2</th>
+                    <th>operation 3</th>
+                </tr>
+            </thead>
+
+            <div class="col-sm-auto" id="dynamicContent">
+             {% block content %}
+            {% import 'issue_child.html' as child %}
+            {{ child.render(issues=issues) }}
+            {% endblock %}
+            </div>
+
+        </table>
+            {% set view_function = 'get_issues_all' %}
+            {% include 'issue_pagination.html' %}
+
+<script>
+        function  getInput(name,value){
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name; // 设置第一个参数名
+        input.value = value; // 设置第一个参数值
+        return input
+    }
+
+    function goToPage() {
+           const current_page = document.getElementById('current_page').value;     // 获取 select 元素
+            const statusSelect = document.getElementById('statusSelect').value;
+            const form = document.createElement('form');  // 创建一个表单元素
+            form.method = 'POST'; // 设置表单方法为 POST
+            form.action = 'search_issue'; // 设置表单提交的 URL
+            form.appendChild(getInput("current_page",current_page));  // 将 input 添加到表单中
+            form.appendChild(getInput("statusSelect",statusSelect));  // 将 input 添加到表单中
+            document.body.appendChild(form);    // 将表单添加到文档中（需要添加到 body 或其他容器）
+            form.submit();   // 提交表单
+    }
+
+    const statusSelect = document.getElementById('statusSelect');     // 获取 select 元素
+    statusSelect.addEventListener('change', function() {    // 添加 change 事件监听器
+         goToPage()
+    });
+</script>
+
+</body>
+</html>
