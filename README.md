@@ -1,4 +1,4 @@
-# github-and-python-anywhere-acc-pas-
+# github-LCC
 github and  python anywhere acc &amp; pas：
 LCC Issue Tracker is a Flask-based issue tracking system designed for Lincoln Community Campground (LCC). It aims to provide an efficient, secure and easy-to-manage online platform to help visitors submit issues and allow volunteers (Helpers) and administrators (Admins) to track and manage them. The system uses Python Flask as the backend framework, MySQL as the database, combined with Bootstrap and JavaScript for front-end development, and optimized responsive design to ensure a good user experience on mobile phones, tablets and desktops.
 
